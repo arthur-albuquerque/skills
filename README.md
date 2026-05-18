@@ -22,4 +22,6 @@ See [coarse-review/README.md](coarse-review/README.md) for full instructions.
 
 Paste the following prompt into your agent and it will handle the rest:
 
-> List the available skills from `https://github.com/arthur-albuquerque/skills` (each skill is a subfolder containing a SKILL.md). Ask me which one I want to install. Then download the chosen skill's SKILL.md from `https://raw.githubusercontent.com/arthur-albuquerque/skills/main/<skill-name>/SKILL.md` and place it in the correct skills directory for the agent you are running in. Do not use the GitHub CLI.
+```text
+List the available skills from `https://github.com/arthur-albuquerque/skills` (each skill is a subfolder containing a SKILL.md). Ask me which one I want to install. Then download the chosen skill's SKILL.md from `https://raw.githubusercontent.com/arthur-albuquerque/skills/main/<skill-name>/SKILL.md` and place it in the correct skills directory for the agent you are running in. Do not use the GitHub CLI.
+```
