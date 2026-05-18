@@ -1,0 +1,19 @@
+# skills
+
+A collection of skills for AI agents.
+
+## Skills
+
+### `implement_plan`
+
+Execute a plan or spec file by reading it and implementing its contents. Triggered when you provide a path to a plan, spec, or design document and want it implemented — even if you just drop a file path and say "do it."
+
+**Usage:** `/implement_plan <path-to-spec-or-plan-file>`
+
+> Heavily inspired by [Thariq's idea](https://x.com/trq212/status/2056418157305454805?s=20).
+
+## Installation
+
+Paste the following prompt into your agent and it will handle the rest:
+
+> List the available skills from `https://github.com/arthur-albuquerque/skills` (each skill is a subfolder containing a SKILL.md). Ask me which one I want to install. Then download the chosen skill's SKILL.md from `https://raw.githubusercontent.com/arthur-albuquerque/skills/main/<skill-name>/SKILL.md` and place it in the correct skills directory for the agent you are running in. Do not use the GitHub CLI.
