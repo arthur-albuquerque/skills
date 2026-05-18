@@ -12,6 +12,12 @@ Execute a plan or spec file by reading it and implementing its contents. Trigger
 
 > Heavily inspired by [Thariq's idea](https://x.com/trq212/status/2056418157305454805?s=20).
 
+### `coarse-review`
+
+Review academic papers (PDF, DOCX, LaTeX, Markdown, HTML, EPUB) with rigorous peer-review feedback — locally, no API keys required.
+
+See [coarse-review/README.md](coarse-review/README.md) for full instructions.
+
 ## Installation
 
 Paste the following prompt into your agent and it will handle the rest:
