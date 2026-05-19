@@ -10,11 +10,11 @@ The user has provided a path to a spec or plan file. Read it, then implement it.
 
 1. Read the file at the path given in the skill arguments.
 2. Treat its full contents as the spec and follow the instruction below.
-3. Maintain a running `implementation-notes.html` in the working directory throughout — update it as you go, not just at the end.
+3. Maintain a running HTML notes file throughout — update it as you go, not just at the end. Save it to `implementation-notes/<plan-slug>.html` in the project root, where `<plan-slug>` is derived from the plan file's name (e.g. `auth-refactor.md` → `auth-refactor.html`). Create the `implementation-notes/` folder if it doesn't exist.
 
 ## Instruction
 
-Implement [the spec you just read]. As you work maintain a running implementation-notes.html file that captures anything I should know about how the implementation diverges from or interprets the spec, including:
+Implement [the spec you just read]. As you work maintain a running `implementation-notes/<plan-slug>.html` file that captures anything I should know about how the implementation diverges from or interprets the spec, including:
 
 - Design decisions: choices you made where the spec was ambiguous
 - Deviations: places where you intentionally departed from the spec, and why

@@ -8,6 +8,8 @@ A collection of skills for AI agents.
 
 Execute a plan or spec file by reading it and implementing its contents. Triggered when you provide a path to a plan, spec, or design document and want it implemented — even if you just drop a file path and say "do it."
 
+It's great because the agent keeps a running HTML log of design decisions, deviations, tradeoffs, and open questions as it works — so you get a transparent record of *how* the spec was interpreted, not just the final diff.
+
 **Usage:** `/implement_plan <path-to-spec-or-plan-file>`
 
 > Heavily inspired by [Thariq's idea](https://x.com/trq212/status/2056418157305454805?s=20).
