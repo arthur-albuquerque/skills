@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Bash(gh --version)",
+      "Bash(git *)",
+      "Bash(gh repo *)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(mkdir -p /Users/arthur/Coding/projects/active/skills/coarse-review/.claude/scripts)",
+      "Bash(mkdir -p /Users/arthur/Coding/projects/active/skills/coarse-review/.opencode/scripts)",
+      "Bash(cp /tmp/coarse-skills-tmp/README.md /Users/arthur/Coding/projects/active/skills/coarse-review/README.md)",
+      "Bash(cp /tmp/coarse-skills-tmp/LICENSE /Users/arthur/Coding/projects/active/skills/coarse-review/LICENSE)",
+      "Bash(cp /tmp/coarse-skills-tmp/install.sh /Users/arthur/Coding/projects/active/skills/coarse-review/install.sh)"
+    ]
+  }
+}

@@ -20,6 +20,14 @@ Review academic papers (PDF, DOCX, LaTeX, Markdown, HTML, EPUB) with rigorous pe
 
 See [coarse-review/README.md](coarse-review/README.md) for full instructions.
 
+### `html_viewer`
+
+Turn any local HTML file into a shareable live webpage via GitHub Gist + htmlpreview.github.io — no web server needed.
+
+**Usage:** `/html_viewer <path-to-html-file>`
+
+> Best for self-contained HTML (embedded CSS/JS). External assets referenced via relative paths won't load.
+
 ## Installation
 
 **Copy** and paste the following prompt into your agent and it will handle the rest:
