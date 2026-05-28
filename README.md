@@ -28,6 +28,14 @@ Turn any local HTML file into a shareable live webpage via GitHub Gist + htmlpre
 
 > Best for self-contained HTML (embedded CSS/JS). External assets referenced via relative paths won't load.
 
+### `sciwrite_interactive`
+
+Review a scientific manuscript for sentence-level writing quality (clutter, passive voice, buried predicates, terminology drift, numerical consistency) and accept/reject each suggestion in a browser editor — the experience is identical to Google Docs' "Suggesting" mode.
+
+See [sciwrite_interactive/README.md](sciwrite_interactive/README.md) for the premises and full usage.
+
+> Heavily inspired by [labarba/sciwrite](https://github.com/labarba/sciwrite), but delivers the review through an interactive accept/reject editor instead of a static report.
+
 ## Installation
 
 **Copy** and paste the following prompt into your agent and it will handle the rest:

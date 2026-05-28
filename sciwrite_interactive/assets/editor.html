@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manuscript Review</title>
+  <link rel="stylesheet" href="/editor.css">
+  <script src="/vendor/marked.min.js"></script>
+  <script src="/vendor/turndown.js"></script>
+</head>
+<body>
+  <header id="topbar">
+    <div class="title-wrap">
+      <span id="doc-title">Document</span>
+      <span id="doc-sub">Suggesting &middot; <span id="reviewer-name">Writing Review</span></span>
+    </div>
+    <div class="topbar-right">
+      <span id="autosave" class="autosave"></span>
+      <span id="counter" class="counter">0 suggestions</span>
+      <button id="later-btn" class="later-btn">Continue Later</button>
+      <button id="save-btn" class="save-btn">Save &amp; Finish</button>
+    </div>
+  </header>
+
+  <div id="workspace">
+    <main id="doc" spellcheck="false" aria-label="Manuscript"></main>
+    <aside id="margin" aria-label="Suggestions"></aside>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/editor.js"></script>
+</body>
+</html>

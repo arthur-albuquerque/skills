@@ -1,0 +1,200 @@
+/* SciWrite Interactive — Google-Docs-style interactive editor */
+
+:root {
+  --doc-text: #202124;
+  --muted: #5f6368;
+  --app-bg: #f9fbfd;
+  --accent-blue: #1a73e8;
+  --suggest-green: #188038;
+  --suggest-green-bg: rgba(24, 128, 56, 0.12);
+  --sev-critical: #d93025;
+  --sev-major: #f9ab00;
+  --sev-minor: #9aa0a6;
+  --card-w: 300px;
+  --margin-w: 332px;
+  --font: Arial, "Helvetica Neue", Helvetica, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--app-bg);
+  color: var(--doc-text);
+  font-family: var(--font);
+}
+
+/* ---------- Top bar ---------- */
+#topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+}
+.title-wrap { display: flex; flex-direction: column; line-height: 1.2; }
+#doc-title { font-size: 16px; font-weight: 500; color: var(--doc-text); }
+#doc-sub { font-size: 12px; color: var(--muted); }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.counter { font-size: 13px; color: var(--muted); }
+.autosave { font-size: 12px; color: var(--muted); min-width: 88px; text-align: right; }
+.save-btn {
+  background: var(--accent-blue);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font);
+}
+.save-btn:hover { background: #1765cc; }
+.save-btn:disabled { background: #c6dafc; cursor: default; }
+.later-btn {
+  background: #228b22;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font);
+}
+.later-btn:hover { background: #1b6f1b; }
+.later-btn:disabled { background: #b6d7b6; cursor: default; }
+
+/* ---------- Workspace: page + margin rail ---------- */
+#workspace {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 40px 24px 200px;
+}
+
+#doc {
+  background: #fff;
+  width: 720px;
+  max-width: 720px;
+  min-height: 600px;
+  padding: 72px 88px;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15);
+  font-size: 15px;
+  line-height: 1.7;
+  text-align: justify;
+  hyphens: auto;
+}
+#doc:focus { outline: none; }
+#doc h1 { font-size: 22px; font-weight: 700; text-align: left; margin: 0 0 14px; }
+#doc h2 { font-size: 18px; font-weight: 700; text-align: left; margin: 22px 0 10px; }
+#doc h3 { font-size: 16px; font-weight: 700; text-align: left; margin: 18px 0 8px; }
+#doc p { margin: 0 0 14px; }
+#doc p:focus { outline: none; }
+#doc table { border-collapse: collapse; margin: 8px 0; text-align: left; }
+#doc th, #doc td { border: 1px solid #d0d0d0; padding: 4px 10px; }
+.verbatim { text-align: left; }
+
+/* ---------- Inline suggestion redlines ---------- */
+.chip { cursor: pointer; border-radius: 2px; }
+.chip .ins {
+  color: var(--suggest-green);
+  text-decoration: underline;
+  text-decoration-color: var(--suggest-green);
+}
+.chip .del {
+  color: var(--suggest-green);
+  text-decoration: line-through;
+  text-decoration-color: var(--suggest-green);
+}
+.chip.active { background: var(--suggest-green-bg); }
+
+/* ---------- Margin rail with anchored cards ---------- */
+#margin {
+  position: relative;
+  width: var(--margin-w);
+  flex: 0 0 var(--margin-w);
+  min-height: 600px;
+}
+
+.card {
+  position: absolute;
+  left: 0;
+  width: var(--card-w);
+  background: #fff;
+  border-radius: 8px;
+  border-left: 4px solid var(--sev-minor);
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.2), 0 2px 6px rgba(60, 64, 67, 0.1);
+  padding: 12px 14px;
+  transition: box-shadow 0.15s ease, transform 0.15s ease, opacity 0.2s ease;
+}
+.card[data-sev="critical"] { border-left-color: var(--sev-critical); }
+.card[data-sev="major"] { border-left-color: var(--sev-major); }
+.card[data-sev="minor"] { border-left-color: var(--sev-minor); }
+.card.active {
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 6px 14px rgba(60, 64, 67, 0.2);
+  z-index: 5;
+}
+.card-head { display: flex; align-items: center; gap: 8px; }
+.avatar {
+  width: 28px; height: 28px;
+  flex: 0 0 28px;
+  border-radius: 50%;
+  background: #6d4c41;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.who { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.who .name { font-size: 13px; font-weight: 600; color: var(--doc-text); }
+.who .time { font-size: 11px; color: var(--muted); }
+.head-actions { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+.icon-btn {
+  width: 30px; height: 30px;
+  border: none; background: none; border-radius: 50%;
+  cursor: pointer; font-size: 16px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted);
+}
+.icon-btn:hover { background: #f1f3f4; }
+.icon-btn.accept { color: var(--accent-blue); font-size: 18px; }
+.icon-btn.reject { color: var(--muted); font-size: 17px; }
+
+.replace-line { font-size: 13px; color: #3c4043; margin: 10px 0 0; }
+.replace-line .q { font-style: italic; }
+
+.rationale { display: flex; gap: 8px; margin-top: 12px; }
+.rationale .avatar { width: 24px; height: 24px; flex-basis: 24px; font-size: 11px; }
+.rationale .r-body { min-width: 0; }
+.rationale .r-head { display: flex; align-items: center; gap: 6px; }
+.rationale .r-head .name { font-size: 12px; font-weight: 600; }
+.rationale .r-head .time { font-size: 11px; color: var(--muted); }
+.rationale .r-head .more { margin-left: 2px; color: var(--muted); cursor: default; }
+.rationale .r-text { font-size: 13px; color: #3c4043; margin-top: 2px; }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: #323232;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  max-width: 80vw;
+}
+.toast[hidden] { display: none; }
