@@ -1,0 +1,15 @@
+{
+  "name": "skills",
+  "version": "1.0.0",
+  "description": "Interactive installer for Arthur's agent skills",
+  "type": "module",
+  "bin": {
+    "skills": "./cli.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.5.1"
+  }
+}

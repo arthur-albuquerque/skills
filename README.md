@@ -42,8 +42,23 @@ See [sciwrite_interactive/README.md](sciwrite_interactive/README.md) for the pre
 
 ## Installation
 
-**Copy** and paste the following prompt into your agent and it will handle the rest:
+Run the interactive installer — it lists every skill, lets you pick which ones and which agents to install for, and copies them into place:
 
-```text
-List the available skills from `https://github.com/arthur-albuquerque/skills` (each skill is a subfolder containing a SKILL.md). Ask me which one I want to install. Then download the chosen skill's SKILL.md from `https://raw.githubusercontent.com/arthur-albuquerque/skills/main/<skill-name>/SKILL.md` and place it in the correct skills directory for the agent you are running in. Do not use the GitHub CLI.
+```bash
+npx github:arthur-albuquerque/skills
 ```
+
+You'll choose:
+- **Skills** — multiselect from the list above (space toggles, enter confirms)
+- **Agents** — Claude Code, Codex, and/or OpenCode
+- **Scope** — `user` (across all your projects) or `project` (current directory only)
+
+Other commands:
+
+```bash
+npx github:arthur-albuquerque/skills list   # print available skills + descriptions
+npx github:arthur-albuquerque/skills add --skill html_viewer --client claude-code
+```
+
+> Requires Node 18+. No npm account or global install needed — `npx` runs it straight from GitHub.
+
