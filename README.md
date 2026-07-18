@@ -14,10 +14,6 @@ It's great because the agent keeps a running HTML log of design decisions, devia
 
 > Heavily inspired by [Thariq's idea](https://x.com/trq212/status/2056418157305454805?s=20).
 
-### `cmux-browser`
-
-Help the agent rapidly navigate the [cmux](https://cmux.com/) in-app browser via CLI commands. See [documentation](https://cmux.com/docs/browser-automation) for further details.
-
 ### `coarse-review`
 
 Review academic papers (PDF, DOCX, LaTeX, Markdown, HTML, EPUB) with rigorous peer-review feedback — locally, no API keys required.
