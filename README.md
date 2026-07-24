@@ -36,6 +36,12 @@ See [sciwrite_interactive/README.md](sciwrite_interactive/README.md) for the pre
 
 > Heavily inspired by [labarba/sciwrite](https://github.com/labarba/sciwrite), but delivers the review through an interactive accept/reject editor instead of a static report.
 
+### `bg-agent`
+
+Dispatch and manage Claude Code background agents (`claude --bg` / `agent view`). Run a task as a background session, then list, check on, stop, or attach to it — without blocking your current session.
+
+See [bg-agent/SKILL.md](bg-agent/SKILL.md) for full instructions.
+
 ## Installation
 
 Run the interactive installer — it lists every skill, lets you pick which ones and which agents to install for, and copies them into place:
