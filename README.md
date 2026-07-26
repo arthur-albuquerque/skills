@@ -40,6 +40,8 @@ See [sciwrite_interactive/README.md](sciwrite_interactive/README.md) for the pre
 
 Dispatch and manage Claude Code background agents (`claude --bg` / `agent view`). Run a task as a background session, then list, check on, stop, or attach to it — without blocking your current session.
 
+Tailored for background agents running **Opus 5**: it always dispatches `--model opus`, and its prompt-writing guidance in [bg-agent/writing-the-brief.md](bg-agent/writing-the-brief.md) follows Anthropic's [Prompting Claude Opus 5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5) — Opus-5-specific behaviour on scope, self-verification, subagent delegation, verbosity, and effort. On a different model, re-check that guidance before relying on it.
+
 See [bg-agent/SKILL.md](bg-agent/SKILL.md) for full instructions.
 
 ## Installation

@@ -7,7 +7,7 @@ description: Dispatch and manage Claude Code background agents (claude --bg / ag
 
 Dispatch via Bash from the directory the agent should work in — the session inherits the cwd. The command returns immediately and prints a short session id.
 
-Model & effort policy: **always dispatch with `--model opus`** — never another model. Pick `--effort` yourself from the task's difficulty (low, medium, high, xhigh, max): low/medium for mechanical or well-specified work, high for typical implementation or debugging, xhigh/max for hard multi-file reasoning. Include both flags on every dispatch.
+Model & effort policy: **always dispatch with `--model opus`** — never another model. Pick `--effort` yourself from the task's difficulty (low, medium, high, xhigh, max); `high` is the default. Include both flags on every dispatch.
 
 ```bash
 claude --bg --model opus --effort <level> "<prompt>"                        # dispatch
@@ -17,9 +17,13 @@ claude --bg --model opus --effort <level> --permission-mode <mode> "<prompt>"
 claude --bg --exec '<shell command>'          # plain shell command as a job (no model involved)
 ```
 
-Prompt rules:
-- The background session sees none of this conversation — write a self-contained prompt: goal, file paths, verification command, done-criterion.
-- Multi-line prompts: `claude --bg "$(cat <<'EOF' … EOF)"`.
+## The prompt is a brief
+
+The background session sees none of this conversation and nobody is watching it — write a self-contained **brief**: the complete spec with absolute paths, and a done-criterion checkable from outside the run. State the goal and the constraints and leave the route to the agent.
+
+Read [writing-the-brief.md](writing-the-brief.md) before writing the prompt — it holds the blocks to paste in (scope, delegation cap, length), what to leave out, and how to pick effort.
+
+Multi-line prompts: `claude --bg "$(cat <<'EOF' … EOF)"`.
 
 Background sessions auto-isolate into a `.claude/worktrees/` worktree before editing files (skipped when the directory isn't a git repo).
 
