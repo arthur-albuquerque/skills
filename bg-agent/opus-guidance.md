@@ -1,4 +1,4 @@
-# Writing the brief
+# Opus guidance
 
 Every rule here comes from [Prompting Claude Opus 5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5).
 
@@ -46,7 +46,7 @@ Match the length of written documents to what the task needs: cover the substanc
 
 ## Effort
 
-`high` is the default. Use `low` and `medium` liberally — they hold quality at a fraction of the tokens and latency, and they are the primary control over what a background run costs. Step up to `xhigh` for demanding coding and agentic work: multi-file features, larger refactors, end-to-end feature work.
+Use the level the user named; when they leave it to you, judge it from the task. `high` is the default. Use `low` and `medium` liberally — they hold quality at a fraction of the tokens and latency, and they are the primary control over what a background run costs. Step up to `xhigh` for demanding coding and agentic work: multi-file features, larger refactors, end-to-end feature work.
 
 ## Review and audit briefs
 
