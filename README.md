@@ -52,6 +52,14 @@ Same brief-writing contract as `bg-agent`, and it ships the same per-model guida
 
 See [sub-agent/SKILL.md](sub-agent/SKILL.md) for full instructions.
 
+### `monitor-tickets`
+
+Run a fleet of ticket agents from one coordinator session. You write the dependency map, it dispatches the frontier, watches for landings, and dispatches each dependent the moment its blockers merge.
+
+GitHub is the ground truth, which is the point: an agent's own status lags a real merge and keeps crying wolf after one, so every event is checked against `gh` before anything is dispatched. Works over `claude --bg` sessions (watched by a persistent Monitor) or in-session sub-agents (woken by task notifications).
+
+See [monitor-tickets/SKILL.md](monitor-tickets/SKILL.md) for full instructions.
+
 ## Installation
 
 Run the interactive installer — it lists every skill, lets you pick which ones and which agents to install for, and copies them into place:
