@@ -44,6 +44,14 @@ Dispatches **Opus 5** by default, or **Fable 5.1** when you name it. The brief-w
 
 See [bg-agent/SKILL.md](bg-agent/SKILL.md) for full instructions.
 
+### `sub-agent`
+
+Dispatch and manage in-session sub-agents through the Agent tool, including overnight ticket fleets run from a coordinator session. Sub-agents live only as long as the session does, but they're cheap to dispatch, they report back on their own as task notifications, and you can message one mid-run.
+
+Same brief-writing contract as `bg-agent`, and it ships the same per-model guidance: [sub-agent/opus-guidance.md](sub-agent/opus-guidance.md) and [sub-agent/fable-guidance.md](sub-agent/fable-guidance.md) are kept identical to the `bg-agent` copies, so either skill works installed on its own.
+
+See [sub-agent/SKILL.md](sub-agent/SKILL.md) for full instructions.
+
 ## Installation
 
 Run the interactive installer — it lists every skill, lets you pick which ones and which agents to install for, and copies them into place:
