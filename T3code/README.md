@@ -47,17 +47,30 @@ Reload the agent if the skills do not appear.
 | Both `t3-threads` and `t3-monitor` | The dispatch and monitoring workflows work together. |
 | `mattpocock-skills:writing-for-agents` | The briefing step in `t3-threads` expects this external skill; it is not bundled here. |
 | Git | Creating separate worktrees for code-writing threads. |
+| [`wt`](https://github.com/lorenzolfm/wt) | Sharing ignored files across worktrees and restoring their links with `wt sync`; install it separately for this workflow. |
 | `jq` | The JSON commands shown for model discovery and cloud workspace trust. |
 | Authenticated GitHub CLI (`gh`) | Verifying GitHub PR merges and ticket closures. |
 | Node 18+ and npm | Using the repository installer; manual copying does not need Node. |
 
 For cloud fleets, additionally install the external `cloud-agents` and `monitor-cloud` skills and configure Claude Code cloud access. Those skills are not bundled here. Read [cloud-fleet.md](t3-threads/cloud-fleet.md) before using that workflow.
 
+## Why we use `wt`
+
+Git worktrees provide separate code checkouts, but omit ignored files such as `.venv` and `.env`. We use [lorenzolfm/wt](https://github.com/lorenzolfm/wt) to keep configured files in a shared store and link them into each worktree. This lets workers reuse the prepared environment instead of installing it again for every checkout.
+
+Follow `wt`'s [installation instructions](https://github.com/lorenzolfm/wt#installation), then initialize the target repository and share its existing ignored environment:
+
+```bash
+wt init
+wt share .venv
+```
+
+Share only paths the project needs. `wt sync` restores missing links; it does not create a virtual environment or install dependencies. Projects using another setup should adapt the worker brief accordingly.
+
 ## Setup assumptions to review
 
 The skills preserve the original workflow. Before using them on another computer, review these assumptions:
 
-- `t3-threads` tells workers to run `wt sync` if a worktree has no `.venv`. That command is not bundled. Replace that instruction with the target project's documented setup command, or remove it if the project needs no virtual environment.
 - The Fable guide includes a `high` effort ceiling and limits on parallel Fable workers. Adapt those cost preferences to the recipient's policy.
 - The cloud-fleet reference names a default Claude model. Resolve it against the recipient's T3 catalog before launching a fleet.
 

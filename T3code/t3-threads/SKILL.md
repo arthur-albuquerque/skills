@@ -52,6 +52,8 @@ A non-Claude child reads none of `~/.claude` — no CLAUDE.md, no skills, no gui
 
 **A thread in a git project starts in its prepared worktree.** The brief names that checkout as the place to work and carries one line: "If `.venv` is absent in your worktree, run `wt sync` from it." Outside git, a launch without `workspaceStrategy` runs in the project root — except in the Scratch project, where every thread gets a fresh folder of its own; either way the brief names every file by absolute path.
 
+`wt` is [lorenzolfm/wt](https://github.com/lorenzolfm/wt). It links ignored environment files across worktrees so workers reuse the prepared environment. `wt sync` restores configured links; install `wt` and share `.venv` first, or use the project's documented setup in the brief.
+
 ## 4. The report-back block (threads only)
 
 A thread has no channel back except the one its brief gives it. Paste this at the end of every thread brief, filled:
