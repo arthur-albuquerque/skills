@@ -1,11 +1,11 @@
 ---
 name: t3-threads
-description: Spawn and manage T3 Code threads from a coordinator thread — launch threads in their own worktrees, delegate child tasks, or launch a cloud fleet thread that runs tickets as claude --cloud sessions — on any connected provider and model (Claude, GPT/Codex, OpenCode). Use inside T3 Code when the user wants work run as T3 threads, subagents, or in the cloud, names a model to run it on, or asks to message, steer, interrupt, or check on a thread this one spawned.
+description: Dispatch and manage T3 child tasks or explicitly requested separate threads, including a separate coordinator for Claude/Codex cloud fleets. Use inside T3 Code for delegation, separate conversations, or messaging, steering, stopping, and inspecting work this thread owns. For direct provider-hosted work, use cloud-agents and monitor-cloud.
 ---
 
 # t3-threads
 
-This thread is the **coordinator**: everything it spawns reports back to it, and it answers for all of them like a chief of staff. This skill dispatches and manages them; the t3-monitor skill runs the loop that reacts as they report. Every tool here is on the `t3-code` MCP server (load them with ToolSearch, `+t3-code`).
+This thread is the **coordinator**: everything it spawns reports back to it, and it answers for all of them like a chief of staff. This skill dispatches and manages them; [t3-monitor](../t3-monitor/SKILL.md) runs the loop that reacts as they report. Discover the `t3-code` tools through the host's tool catalog.
 
 The coordinator sees only threads in its own project (`t3_thread_read`, `t3_thread_list` and `t3_thread_send` are all project-scoped), so spawn everything into the coordinator's project.
 
@@ -16,26 +16,18 @@ The coordinator sees only threads in its own project (`t3_thread_read`, `t3_thre
 | Lives | Top-level in the sidebar; the user can open, read and steer it | Under the coordinator, owned by it |
 | Workspace | Its own: `workspaceStrategy` picks a new worktree, an existing one, or the project root | The coordinator's own checkout, shared with it |
 | Completion | No parent link, no notice — it reports through the **report-back** block (step 4) | Its first run's end wakes the coordinator on its own: `Delegated task <taskId> reached a terminal state…` |
-| Fits | Implementation, anything that commits or opens a PR, anything running alongside another writer | Research, review, scouting, one-off answers, read-only work |
+| Fits | Separate conversations the user explicitly requested; select a workspace before launch | Delegated work, including implementation with explicit file ownership |
 
-Two writers in one checkout collide, so parallel code changes always go to threads, each in its own worktree. `create_threads` (a batch sharing the coordinator's checkout) fits only read-only batches the user asked to see as separate threads.
+Use child tasks for subagents and parallel delegation. Give shared-checkout writers non-overlapping ownership and tell them to preserve others' changes; serialize overlapping edits. Use `t3_thread_launch` or `create_threads` only when the user explicitly asks for separate/new/top-level threads or conversations. `create_threads` shares the caller's checkout; `t3_thread_launch` selects its workspace explicitly.
 
-**Cloud fleet** — tickets the user wants worked in the cloud go to one local Claude thread that runs them as `claude --cloud` sessions through the cloud-agents and monitor-cloud skills. Its model rules, workspace and brief are in [cloud-fleet.md](cloud-fleet.md); read it before launching one, then carry on from step 5.
+**Cloud work** — use `cloud-agents` (`~/.agents/skills/cloud-agents/SKILL.md`) and `monitor-cloud` (`~/.agents/skills/monitor-cloud/SKILL.md`) from the current coordinator. When the user explicitly requests a separate fleet coordinator thread, read [cloud-fleet.md](cloud-fleet.md) for its selection, brief, and health handoff, then continue from step 5. Cloud workers run on the selected provider; a local T3 thread is their coordinator.
 
 ## 2. Pick the model
 
 1. Read the coordinator's own selection: `t3_thread_configuration` with no `threadId`. It returns this thread's `threadId` (the coordinator id the briefs carry) and `modelSelection` — `instanceId`, `model`, `options`.
-2. **The user named no model** → reuse that `modelSelection` verbatim, options included.
-3. **The user named one** → resolve it against the live catalog. `orchestrator_capabilities` returns ~60 KB, so the harness saves it to a file; query it with jq:
-
-   ```bash
-   jq -r '.providers[] | select(.canRunChildTask) | .providerInstanceId as $p | .models[] | "\($p)\t\(.id)\t\([.options[]? | "\(.id)=\([.options[]?.id] | join("|"))"] | join(" "))"' <saved-file> | grep -i '<name>'
-   ```
-
-   - Provider by name: Claude family (opus, sonnet, haiku, fable) → `claudeAgent`; GPT / Codex names (sol, luna, astra, terra) → `codex`; OpenCode, or a model only OpenCode carries (gemini, deepseek, kimi, glm, qwen, minimax, …) → `opencode`, whose ids are `vendor/model` exactly as listed. A GPT name goes to `codex` unless the user said OpenCode.
-   - A loose name ("gpt", "opus") → the newest matching model. `claudeAgent` and `codex` list their newest flagship first, so take the first match there; `opencode` lists alphabetically, so take the highest version of the named family. Name the resolved id in the dispatch report.
-   - A provider with `canRunChildTask: false` is disabled or not installed; its `constraints` say why. Tell the user and stop that dispatch.
-4. **Options** are per model — use only the ids and values the catalog lists for the resolved model. Effort is the level the user named; else, on an inherited selection, the coordinator's; else judged from the task, `medium` as the starting point. The option is `effort` on Claude, `reasoningEffort` on Codex (default `low`, so a Codex dispatch always sets it), and `variant` on OpenCode. A blank value list (`fastMode=`) marks a boolean. Fable caps at `high` by the user's cost policy. Keep `contextWindow` when the resolved model lists it.
+2. Resolve provider, model, and effort independently: explicit user choices override each field; unspecified fields inherit this thread's selection. With no overrides, reuse `modelSelection` verbatim, including options. For cloud workers, apply cloud-agents' resolution and supported-provider checks instead of the local T3 catalog.
+3. Resolve overrides against `orchestrator_capabilities`, including configured custom provider instances and models. Use the actual returned catalog, whether inline or saved to a file. Match exact IDs; clarify an ambiguous alias. For child tasks, check `canRunChildTask` and the provider's constraints. That child-task flag does not decide whether a top-level thread can launch.
+4. Use only option IDs and values supported by the resolved model. Translate inherited effort to its supported option without changing the level; retain other inherited options where supported. If a value is unknown or the resolved combination is unsupported, ask for the smallest missing choice before dispatch. Report the resolved provider, model, and effort.
 
 Pass the selection explicitly on every dispatch: `modelSelection: {instanceId, model, options}` for a thread, `target: {providerInstanceId, model, options}` for a child task, `options` as an array of `{id, value}`. Inheritance is uneven — `delegate_task` drops the inherited options whenever the provider or model changes, and `t3_thread_launch` checks nothing against the catalog — so the resolution above is the only guard on what the child runs.
 
@@ -45,14 +37,12 @@ The child sees none of this conversation and nobody is watching it: write a self
 
 Before writing it, load two things, every dispatch:
 
-1. **Invoke `mattpocock-skills:writing-for-agents`** and write the brief by its levers.
-2. **Read one guidance file**: [opus-guidance.md](opus-guidance.md) for Claude models, [fable-guidance.md](fable-guidance.md) for Fable. A GPT or OpenCode child gets the paste-in blocks from opus-guidance's "Bound the scope", "Unattended runs" (both blocks) and "The final report" sections, plus "Pasted text" when the brief carries text from elsewhere.
+1. Read `writing-for-agents` (`~/.agents/skills/writing-for-agents/SKILL.md`) and write the brief by its levers.
+2. For Claude models, read [opus-guidance.md](opus-guidance.md), or [fable-guidance.md](fable-guidance.md) for Fable, and carry the applicable scope and reporting instructions. The resolved session/user settings govern model and effort. For other providers, state scope, ownership, checks, and the final reporting contract directly in the brief.
 
-A non-Claude child reads none of `~/.claude` — no CLAUDE.md, no skills, no guides. Its brief carries every rule it needs in its own words, including any review-round policy.
+Check which rules and skills the worker can actually read. Global shared skills live in `~/.agents/skills`; embed reached procedures when the worker lacks access. For remote containers, cloud-agents owns this packaging. Each brief carries applicable review policy and the user's merge authority.
 
 **A thread in a git project starts in its prepared worktree.** The brief names that checkout as the place to work and carries one line: "If `.venv` is absent in your worktree, run `wt sync` from it." Outside git, a launch without `workspaceStrategy` runs in the project root — except in the Scratch project, where every thread gets a fresh folder of its own; either way the brief names every file by absolute path.
-
-`wt` is [lorenzolfm/wt](https://github.com/lorenzolfm/wt). It links ignored environment files across worktrees so workers reuse the prepared environment. `wt sync` restores configured links; install `wt` and share `.venv` first, or use the project's documented setup in the brief.
 
 ## 4. The report-back block (threads only)
 
@@ -64,24 +54,26 @@ You were dispatched by a coordinator: T3 thread `<coordinatorThreadId>`; your la
 
 `queue` waits for the coordinator's current turn to end; `auto` or `steer` would cut into it and abort whatever tool call is in flight.
 
-Child tasks skip this block: their final message is the report and the notification carries it. Only a child task's first run notifies, though, so every follow-up message to either kind ends with the one-line form (§6).
+Child tasks skip this block: the notification carries task IDs; read their results with `task_status`. Only a child task's first run notifies, so every follow-up message to either kind ends with the one-line form (§6).
 
 ## 5. Dispatch
 
 - **Label** every dispatch `<prefix>-<slug>` (`ticket-407-cc-gates`); it is the `title`, the report tag, and the roster key.
 - **Thread:** `t3_thread_launch` with `title`, `message` (the brief), `modelSelection`, and in a git project `workspaceStrategy: {type: "worktree", baseRef: "<parent branch>", branch: "<new branch>", startFromOrigin: <bool>}` — `false` to build on local commits, `true` to fetch and start from origin. Uncommitted edits stay behind. Runtime and interaction modes inherit; leave them. `t3_thread_launch` has no retry key: after an error or a lost response, look for the title in `t3_thread_list` before launching again.
 - **Child task:** `delegate_task` with `task` (the brief), `title`, `target`, `mode: "async"`, `role`, and a `clientRequestId` of the label, which makes a retry idempotent.
-- Send independent dispatches in one message. T3 threads and child tasks sit outside CLAUDE.md's sub-agent cap; dispatch as many as the work needs.
+- Batch independent dispatches within the user's scope and any applicable concurrency limits.
 
 **Record every dispatch in the roster** before anything else: `~/.claude/t3-roster/<coordinatorThreadId>.tsv`, one row per dispatch, tab-separated, header on first write:
 
 ```text
-label	kind	id	model	workspace	ticket	blockers	status	continuations
+label	kind	id	model	workspace	ticket	blockers	status	continuations	provider	effort	fleet_state
 ```
 
 `kind` is `thread`, `task`, or `cloud-fleet`; `id` is the `threadId`, or for a task the `taskId` and its `childThreadId` as `taskId|childThreadId`; `status` starts `running`. Ids carry `%` escapes, so write rows with the Write/Edit tools or a quoted heredoc rather than `printf`. The roster outlives this context window — t3-monitor reads and updates it.
 
-Done when every dispatch returned an id, each has a roster row, and t3-monitor's loop is armed. Report each label, its id, and the resolved model; then end the turn — the reports and notifications are the wake-up.
+The new header appends `provider`, `effort`, and `fleet_state` after the existing nine columns. The first two record the local worker selection; `fleet_state` is the cloud-fleet health record path described in cloud-fleet.md, or `-`. Existing nine-column rosters and heartbeat comments remain valid: preserve their layout, recover missing selections through T3 configuration, and ask an existing fleet coordinator to supply its health record before evaluating watcher health. The historical `~/.claude/t3-roster` state path stays compatible across providers.
+
+Done when every dispatch returned an id, each has a roster row, and t3-monitor's loop is armed. Report each label, its id, and resolved provider/model/effort; then end the turn — the reports and notifications are the wake-up.
 
 ## 6. Manage
 

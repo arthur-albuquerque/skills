@@ -62,7 +62,7 @@ See [monitor-tickets/SKILL.md](monitor-tickets/SKILL.md) for full instructions.
 
 ### `t3-threads`
 
-Launch and manage work from a coordinator thread in T3 Code: separate threads in their own worktrees, delegated child tasks, or a cloud fleet. Select models from connected providers, write self-contained briefs, and keep a roster so the coordinator can follow each dispatch.
+Dispatch child tasks or explicitly requested separate conversations in T3 Code, including a separate coordinator for Claude or Codex cloud fleets. Inherit provider, model, and effort unless the user overrides them; write self-contained briefs and keep a roster. Direct cloud work uses the shared `cloud-agents` and `monitor-cloud` skills in the current coordinator.
 
 Includes the cloud-fleet reference and standalone copies of the Opus and Fable briefing guides.
 
@@ -72,7 +72,7 @@ See [T3code/t3-threads/SKILL.md](T3code/t3-threads/SKILL.md) for full instructio
 
 ### `t3-monitor`
 
-Coordinate the threads and child tasks launched with `t3-threads`: schedule a heartbeat, handle reports and questions, verify completed work, relay changes between workers, and dispatch tickets as their blockers land. Remove the heartbeat when the fleet finishes.
+Coordinate the threads, child tasks, and separate cloud-fleet coordinators launched with `t3-threads`: reuse or schedule one heartbeat, handle reports and questions, verify each brief’s completion criterion, relay changes, and release dependents after verified merges. Cloud-fleet health comes from its recorded watcher or scheduler. Clean up owned schedules when the fleet finishes.
 
 **Usage:** `/t3-monitor` after dispatching work with `t3-threads`.
 

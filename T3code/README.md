@@ -1,87 +1,83 @@
 # T3 Code setup
 
-This folder contains the two Claude skills for coordinating work inside T3 Code, their model guides, and the setup instructions for sharing them with another user.
+This folder contains two skills for coordinating work inside T3 Code across connected providers, their model guides, and installation instructions.
 
 ## Contents
 
 | File | Purpose |
 | --- | --- |
-| [t3-threads/SKILL.md](t3-threads/SKILL.md) | Launch and manage threads or delegated child tasks; record their roster. |
-| [t3-monitor/SKILL.md](t3-monitor/SKILL.md) | Monitor the roster, handle reports, verify landings, and dispatch dependents. |
-| [t3-threads/opus-guidance.md](t3-threads/opus-guidance.md) | Briefing guidance for Opus and the shared blocks used for other providers. |
-| [t3-threads/fable-guidance.md](t3-threads/fable-guidance.md) | Briefing guidance for Fable. |
-| [t3-threads/cloud-fleet.md](t3-threads/cloud-fleet.md) | Instructions for the optional cloud-fleet workflow. |
+| [t3-threads/SKILL.md](t3-threads/SKILL.md) | Dispatch child tasks or explicitly requested separate conversations; record their roster. |
+| [t3-monitor/SKILL.md](t3-monitor/SKILL.md) | Monitor the roster, handle reports, verify requested results, and release dependents. |
+| [t3-threads/opus-guidance.md](t3-threads/opus-guidance.md) | Claude briefing guidance. |
+| [t3-threads/fable-guidance.md](t3-threads/fable-guidance.md) | Fable briefing guidance. |
+| [t3-threads/cloud-fleet.md](t3-threads/cloud-fleet.md) | Handoff to an explicitly requested separate Claude/Codex cloud-fleet coordinator. |
 
-## Install for Claude Code
+## Install
 
-Copy this whole `T3code` folder to the other computer. From inside it, run:
-
-```bash
-mkdir -p ~/.claude/skills
-cp -R t3-threads t3-monitor ~/.claude/skills/
-```
-
-This installs both skills globally for that user. Each skill folder must sit directly under `~/.claude/skills`; the `T3code` container is for distribution. The model guides are regular files, so copying the folders preserves them without symlinks to another installation.
-
-Alternatively, once these changes are published to the repository, use its installer:
+For a shared global installation, copy the two skill folders from this directory:
 
 ```bash
-npx github:arthur-albuquerque/skills add --skill t3-threads --skill t3-monitor --client claude-code --global -y
+mkdir -p ~/.agents/skills
+cp -R t3-threads t3-monitor ~/.agents/skills/
 ```
 
-To install from a local clone before publication, run these commands from the repository root:
+Configure each client to discover these shared folders. If it uses its own skill directory, link the two folders there or use the repository installer for that client. The bundled model guides are regular files, so either skill folder can be copied without dependencies on another installation's symlinks.
+
+The installer supports Claude Code, Codex, and OpenCode. For example:
+
+```bash
+npx github:arthur-albuquerque/skills add --skill t3-threads --skill t3-monitor --client codex --global -y
+```
+
+To install from a local clone, run from the repository root:
 
 ```bash
 npm install
-node cli.mjs add --skill t3-threads --skill t3-monitor --client claude-code --global -y
+node cli.mjs add --skill t3-threads --skill t3-monitor --client codex --global -y
 ```
 
-Reload the agent if the skills do not appear.
+The installer uses each client's skill directory; it does not create a shared global installation. Reload the agent if the skills do not appear. Both skills require T3's tools at runtime.
 
 ## Dependencies
 
 | Dependency | When it is needed |
 | --- | --- |
-| T3 Code with the `t3-code` MCP tools | All thread, delegation, messaging, and scheduling operations. Plain Claude Code outside T3 cannot supply these tools. |
-| A connected, authenticated model provider | Running the dispatched work. The selected provider and model must be available in T3's live catalog. |
-| Both `t3-threads` and `t3-monitor` | The dispatch and monitoring workflows work together. |
-| `mattpocock-skills:writing-for-agents` | The briefing step in `t3-threads` expects this external skill; it is not bundled here. |
-| Git | Creating separate worktrees for code-writing threads. |
-| [`wt`](https://github.com/lorenzolfm/wt) | Sharing ignored files across worktrees and restoring their links with `wt sync`; install it separately for this workflow. |
-| `jq` | The JSON commands shown for model discovery and cloud workspace trust. |
-| Authenticated GitHub CLI (`gh`) | Verifying GitHub PR merges and ticket closures. |
-| Node 18+ and npm | Using the repository installer; manual copying does not need Node. |
+| T3 Code with the `t3-code` orchestration tools | Thread, child-task, messaging, and scheduling operations. |
+| A connected, authenticated model provider | Running local dispatched work. Resolve IDs and options through T3's live catalog, including custom instances. |
+| Both `t3-threads` and `t3-monitor` | Dispatch and monitoring work together. |
+| `writing-for-agents` at `~/.agents/skills/writing-for-agents/SKILL.md` | Writing briefs. This external skill is not bundled here. |
+| Git | Separate worktrees for explicitly requested implementation conversations. |
+| [`wt`](https://github.com/lorenzolfm/wt) | Restoring configured ignored-file links in worktrees with `wt sync`. |
+| Authenticated GitHub CLI (`gh`) | Checking exact PR merges, bases, closing references, and issue state. |
+| Node 18+ and npm | Using the installer; manual copying does not require Node. |
 
-For cloud fleets, additionally install the external `cloud-agents` and `monitor-cloud` skills and configure Claude Code cloud access. Those skills are not bundled here. Read [cloud-fleet.md](t3-threads/cloud-fleet.md) before using that workflow.
+For cloud work, install the external `cloud-agents` and `monitor-cloud` skills under `~/.agents/skills` and complete the selected provider's preflight. They are not bundled here. They supply Claude dispatch and the current Codex cloud terminal adapter, authentication/environment checks, provider ledgers, continuations, and worker-result inspection. Follow their selected-provider references for prerequisites and adapter installation. Cloud workers need pushed repository inputs and self-contained briefs; this computer's personal skills do not automatically travel to the container.
 
-## Why we use `wt`
+## Worktree environments
 
-Git worktrees provide separate code checkouts, but omit ignored files such as `.venv` and `.env`. We use [lorenzolfm/wt](https://github.com/lorenzolfm/wt) to keep configured files in a shared store and link them into each worktree. This lets workers reuse the prepared environment instead of installing it again for every checkout.
-
-Follow `wt`'s [installation instructions](https://github.com/lorenzolfm/wt#installation), then initialize the target repository and share its existing ignored environment:
+Git worktrees omit ignored files such as `.venv` and `.env`. We use [lorenzolfm/wt](https://github.com/lorenzolfm/wt) to keep configured files in a shared store and link them into worktrees. Follow its [installation instructions](https://github.com/lorenzolfm/wt#installation), then initialize the target repository and share only the existing paths it needs:
 
 ```bash
 wt init
 wt share .venv
 ```
 
-Share only paths the project needs. `wt sync` restores missing links; it does not create a virtual environment or install dependencies. Projects using another setup should adapt the worker brief accordingly.
+`wt sync` restores missing links; it does not create a virtual environment or install dependencies. Adapt briefs for projects using another setup.
 
-## Setup assumptions to review
+## Selection and monitoring
 
-The skills preserve the original workflow. Before using them on another computer, review these assumptions:
+Provider, model, and effort inherit from the requesting session unless the user explicitly overrides each field. A separate fleet coordinator receives the resolved cloud-worker settings in its brief, so changing its local model preserves worker settings. Unsupported combinations need clarification before dispatch. Session/user selections take precedence over defaults in the bundled model guides.
 
-- The Fable guide includes a `high` effort ceiling and limits on parallel Fable workers. Adapt those cost preferences to the recipient's policy.
-- The cloud-fleet reference names a default Claude model. Resolve it against the recipient's T3 catalog before launching a fleet.
+Direct cloud work runs through the shared cloud skills in the current coordinator. Create a separate top-level coordinator only when the user explicitly requests a separate conversation; delegated subagents remain child tasks.
 
-The coordinator writes its runtime roster to `~/.claude/t3-roster/<coordinatorThreadId>.tsv` on the recipient's computer. The roster tracks active work; it is not part of the distributed setup.
+The coordinator keeps its roster at `~/.claude/t3-roster/<coordinatorThreadId>.tsv` for compatibility across providers. Existing nine-column rosters remain valid. New rosters append provider, effort, and fleet-health record path. Cloud-fleet health uses its actual notifying host, schedule cadence, and last completed sweep; an idle local thread can coexist with active remote workers. Parent heartbeats and fleet-owned cloud watchers have separate IDs and are cleaned up by their owners.
 
 ## Use
 
-Open a Claude coordinator thread inside T3 Code and invoke:
+Open a coordinator inside T3 Code and invoke:
 
 ```text
-/t3-threads <work to dispatch>
+/t3-threads <work to delegate, or explicitly requested separate conversations>
 ```
 
-Then use `/t3-monitor` to coordinate the dispatched work. It uses a scheduled heartbeat and removes that heartbeat when the fleet finishes. For the complete behavior, read the two `SKILL.md` files linked above.
+Then use `/t3-monitor` to coordinate the dispatched work. For cloud tickets directly, use `/cloud-agents` and `/monitor-cloud`. For a separate cloud coordinator, read [cloud-fleet.md](t3-threads/cloud-fleet.md).
