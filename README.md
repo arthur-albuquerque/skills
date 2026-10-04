@@ -60,6 +60,26 @@ GitHub is the ground truth, which is the point: an agent's own status lags a rea
 
 See [monitor-tickets/SKILL.md](monitor-tickets/SKILL.md) for full instructions.
 
+### `t3-threads`
+
+Launch and manage work from a coordinator thread in T3 Code: separate threads in their own worktrees, delegated child tasks, or a cloud fleet. Select models from connected providers, write self-contained briefs, and keep a roster so the coordinator can follow each dispatch.
+
+Includes the cloud-fleet reference and standalone copies of the Opus and Fable briefing guides.
+
+**Usage:** `/t3-threads <work to dispatch>`
+
+See [T3code/t3-threads/SKILL.md](T3code/t3-threads/SKILL.md) for full instructions.
+
+### `t3-monitor`
+
+Coordinate the threads and child tasks launched with `t3-threads`: schedule a heartbeat, handle reports and questions, verify completed work, relay changes between workers, and dispatch tickets as their blockers land. Remove the heartbeat when the fleet finishes.
+
+**Usage:** `/t3-monitor` after dispatching work with `t3-threads`.
+
+See [T3code/t3-monitor/SKILL.md](T3code/t3-monitor/SKILL.md) for full instructions.
+
+The skills, model guides, installation instructions, and dependency notes are grouped in [T3code/README.md](T3code/README.md). Install both skills together and use them inside T3 Code.
+
 ## Installation
 
 Run the interactive installer — it lists every skill, lets you pick which ones and which agents to install for, and copies them into place:
@@ -78,7 +98,7 @@ Other commands:
 ```bash
 npx github:arthur-albuquerque/skills list   # print available skills + descriptions
 npx github:arthur-albuquerque/skills add --skill html_viewer --client claude-code
+npx github:arthur-albuquerque/skills add --skill t3-threads --skill t3-monitor --client claude-code --global -y
 ```
 
 > Requires Node 18+. No npm account or global install needed — `npx` runs it straight from GitHub.
-

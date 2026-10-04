@@ -161,12 +161,15 @@ function clientSubdir(client) {
 }
 
 function discoverSkills(root) {
-  const dirs = fs
-    .readdirSync(root, { withFileTypes: true })
-    .filter((e) => e.isDirectory() && !e.name.startsWith(".") && e.name !== "node_modules");
+  const dirs = [root, path.join(root, "T3code")]
+    .filter((skillRoot) => fs.existsSync(skillRoot))
+    .flatMap((skillRoot) => fs
+      .readdirSync(skillRoot, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && !e.name.startsWith(".") && e.name !== "node_modules")
+      .map((e) => ({ name: e.name, dir: path.join(skillRoot, e.name) })));
   const skills = [];
   for (const e of dirs) {
-    const dir = path.join(root, e.name);
+    const dir = e.dir;
     const flat = path.join(dir, "SKILL.md");
     if (fs.existsSync(flat)) {
       const meta = readSkillMeta(flat, e.name);
