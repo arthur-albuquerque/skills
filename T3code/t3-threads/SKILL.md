@@ -9,6 +9,14 @@ This thread is the **coordinator**: it dispatches work, resolves decisions and r
 
 The coordinator sees only threads in its own project (`t3_thread_read`, `t3_thread_list` and `t3_thread_send` are all project-scoped), so spawn everything into the coordinator's project.
 
+## GitHub ticket names
+
+Before dispatching GitHub ticket work, rename the current coordinator thread to `Coordinator #<tickets>`, using the ticket set it oversees from the assignment or roster. Sort the numbers and compress consecutive runs into ranges: `Coordinator #407–410, #415`; a single ticket is `Coordinator #407`. List gaps separately so the title names only tickets under its oversight. Update the title when that scope changes. Call `t3_thread_update` with `action: "rename"` and `title`, omitting `threadId` to target the current coordinator. Include repository names when needed to distinguish ticket numbers across repositories.
+
+When creating a thread or child task to tackle GitHub issues, include the assigned ticket numbers in its label and `title` at dispatch: `ticket-407-cc-gates`, or `tickets-407-408-cc-gates` for a fleet. Include `owner/repo` when needed to distinguish repositories, and carry the repository and issue numbers in the brief.
+
+If the created thread's title needs correction, call `t3_thread_update` with `action: "rename"`, its returned `threadId` (or `childThreadId` for a child task), and the ticket-bearing `title`. Confirm each rename's returned title matches the requested name; report a failed rename. Work without a GitHub ticket keeps its ordinary naming convention.
+
 ## 1. Pick the vehicle
 
 | | **Thread** — `t3_thread_launch` | **Child task** — `delegate_task` |
@@ -58,7 +66,7 @@ Child tasks skip this block: the notification carries task IDs; read their resul
 
 ## 5. Dispatch
 
-- **Label** every dispatch `<prefix>-<slug>` (`ticket-407-cc-gates`); it is the `title`, the report tag, and the roster key.
+- **Label** every dispatch `<prefix>-<slug>`, applying the GitHub ticket naming rule above; it is the `title`, the report tag, and the roster key.
 - **Thread:** `t3_thread_launch` with `title`, `message` (the brief), `modelSelection`, and an explicit workspace. Local implementation in git uses `workspaceStrategy: {type: "worktree", baseRef: "<parent branch>", branch: "<new branch>", startFromOrigin: <bool>}` — `false` for local commits, `true` for origin. Cloud handoffs use cloud-fleet.md's workspace choice. Uncommitted edits stay behind. Runtime and interaction modes inherit; leave them. After an error or lost response, look for the title in `t3_thread_list` before launching again; this tool has no retry key.
 - **Child task:** `delegate_task` with `task` (the brief), `title`, `target`, `mode: "async"`, `role`, and a `clientRequestId` of the label, which makes a retry idempotent.
 - Batch independent dispatches within the user's scope and any applicable concurrency limits.
