@@ -1,11 +1,13 @@
 ---
 name: t3-monitor
-description: Monitor T3 threads, child tasks, and separate Claude/Codex cloud-fleet coordinators through a heartbeat, report triage, external verification, follow-ups, and dependency releases. Use inside T3 Code for work this thread owns, on t3-report, t3-monitor sweep, or delegated-task terminal messages, or when asked to watch its workers. Direct cloud fleets use monitor-cloud.
+description: Monitor owned T3 threads and child tasks through reports, a heartbeat, verification and dependency releases. Use on t3-report, t3-monitor sweep, delegated-task terminal messages, or a request to watch workers. Claude/Codex cloud handoffs share one fleet monitor owner through monitor-cloud.
 ---
 
 # t3-monitor
 
-The coordinator is the **chief of staff** of every thread and child task it spawned ([t3-threads](../t3-threads/SKILL.md)): it hears their reports, checks their claims, answers what it can, carries decisions and news between them, and brings the user only what needs the user. The **roster**, `~/.claude/t3-roster/<coordinatorThreadId>.tsv`, survives context summaries. Read columns by header: legacy nine-column rosters remain valid; newer rosters also record local `provider`, `effort`, and a cloud-fleet `fleet_state` path. The historical state path serves either provider.
+The coordinator verifies reports, resolves decisions and releases work it owns ([t3-threads](../t3-threads/SKILL.md)). The **roster**, `~/.claude/t3-roster/<coordinatorThreadId>.tsv`, survives context summaries. Read columns by header: legacy nine-column rosters remain valid; newer rosters also record local `provider`, `effort`, and a cloud-fleet `fleet_state` path. The historical state path serves either provider.
+
+For Claude or Codex cloud rows, read [the shared cloud workflow](../cloud-agents/references/cloud-workflow.md). Its execution, event and monitor-ownership contract replaces ordinary local worker recovery. A local handoff thread can finish while its remote worker remains active.
 
 ## Signals
 
@@ -19,9 +21,9 @@ Every signal arrives as a message in this thread with role `user`. Notifications
 
 ## Steps
 
-1. **Map dependencies first** when the roster holds tickets: state in your reply a table of every remaining ticket → its blockers. Each event then either unblocks named tickets or it doesn't.
+1. **Map dependencies first** in the roster or fleet record: every remaining ticket → its blockers. Report the table at dispatch or when it changes; reuse it between signals. Each event then either unblocks named tickets or it doesn't.
 
-2. **Arm one heartbeat.** Threads report only if they remember to, and a thread that dies, wedges, or waits on a permission prompt says nothing. `list_scheduled_tasks` first — reuse the existing enabled heartbeat for this roster and bound thread, or create one with `schedule_task`:
+2. **Resolve the monitor owner before arming.** Cloud handoffs share the full fleet's sole notifying host through monitor-cloud. If this thread owns that cloud fleet and also has a local roster, use one combined sweep for its owned work. If a separate fleet thread owns the cloud watcher, inspect that same host's health instead of creating another heartbeat for those tickets. Ordinary local work uses one heartbeat: `list_scheduled_tasks` first, then reuse the existing enabled heartbeat for this roster and bound thread or create one with `schedule_task`:
 
    ```text
    title: t3-monitor <coordinator label>
@@ -30,9 +32,9 @@ Every signal arrives as a message in this thread with role `user`. Notifications
    bindToCurrentThread: true
    ```
 
-   Pass `schedule` as a structured object. Twenty minutes is the default; tighten it for a short fleet, loosen it overnight. Done when the enabled heartbeat's `boundThreadId` is this thread and `nextRunAt` is set; write its ID into the roster as a `# heartbeat <id>` line and report its returned cadence and next run. A separate cloud-fleet thread owns its own cloud watcher; this parent heartbeat monitors the whole roster.
+   Pass `schedule` as a structured object. Twenty minutes is the default; adjust it for the task. Record the owner and returned host metadata in cloud health and the applicable roster `# heartbeat <id>` line. Done when owned work has one notifying host with the correct bound thread/next run, or explicit manual monitoring, and cloud ticket threads share it. The scheduler starts a turn every interval; quiet sweeps send no worker messages.
 
-3. **On each signal, verify before acting.** A report is a claim; the ground truth decides:
+3. **Batch signals, then verify before acting.** Track handled event IDs and latest revisions in persistent state; for cloud events use the shared workflow's fleet record. Read the newest state per ticket before handling queued snapshots. Duplicate, superseded and informational acknowledgement events need no follow-up send. A report is a claim; the ground truth decides:
    - Work whose brief requires landing: the exact PR is MERGED (`gh pr view <url> --json state,mergedAt,baseRefName,closingIssuesReferences`) against the intended base and, for a ticket, closes that issue (`gh issue view <n> --json state`). A closed issue alone is insufficient. Use the worker's report and linked PRs to identify the exact PR.
    - Reviewable code work: check the brief's requested result, pushed head, PR, and required validation. Merge authority comes from the user; verification does not expand it. Link every PR this coordinator works on through T3's `link_pull_request` when available.
    - Anything else: the done-criterion its brief named holds, checked from outside the run — the file exists, the command passes, the findings carry evidence.
@@ -43,30 +45,31 @@ Every signal arrives as a message in this thread with role `user`. Notifications
    - Page `t3_thread_list` (`includeSubagents: true`, `limit: 100`, then the returned `nextCursor`) until every roster thread is found or the list ends. A missing row needs inspection of its recorded ID and project visibility.
    - For child-task rows, read `task_status`: use `workState`, `hasPendingChildRuns`, and the latest terminal result to distinguish working, waiting for children, and a result ready to verify.
    - For ordinary threads, `completed`, `failed`, `interrupted` or `cancelled` with no report since its last message → read its final assistant message (`t3_thread_read`, `view: "messages"`) and treat it as the report.
-   - `running`, `waiting`, or unchanged for two sweeps → `t3_thread_read` the thread header: `pendingRequestCount` above zero means a question (`t3_pending_request_list`, answer within the authority the user gave, else surface it) or a permission prompt, which only the user can clear in T3 — tell them which thread and what it asks. No pending request and `updatedAt` frozen across two sweeps → read the `activity` tail, then nudge it with a `steer`, or `restart` it.
+   - For local rows `running`, `waiting`, or unchanged for two sweeps, read the thread header: `pendingRequestCount` above zero means a question (`t3_pending_request_list`, answer within existing authority, else surface it) or a permission prompt only the user can clear. With no pending request and frozen `updatedAt`, inspect the activity tail and readiness condition. Record a healthy wait; an evidenced wedge gets one targeted recovery assignment rather than a status nudge.
 
    A `task_status` of `running` hides a child task stuck on a prompt, so the thread header is the place to look. A sweep that changes nothing ends in one line.
 
-   For a **cloud-fleet** row, read [the fleet health handoff](../t3-threads/cloud-fleet.md) and its recorded `fleet_state`. Apply that health check instead of the ordinary thread-idleness rules: `completed` between scheduled turns is expected. Check the recorded notifying host and actual sweep cadence; request missing metadata from legacy fleet coordinators. Use `monitor-cloud` (`~/.agents/skills/monitor-cloud/SKILL.md`) and `cloud-agents` (`~/.agents/skills/cloud-agents/SKILL.md`) for provider-ledger inspection, current Codex terminal results, follow-ups, and exact GitHub landing verification. Recover the watcher without duplicating live workers or changing their recorded provider/model/effort.
+   For a **cloud-fleet** row, read [the cloud handoff](../t3-threads/cloud-fleet.md) and `fleet_state` before applying ordinary idleness rules. Resolve `monitorOwner`; completed ticket handoff turns are expected. The owner checks the complete map directly through [monitor-cloud](../monitor-cloud/SKILL.md). A parent of a separate monitor owner checks its recorded host/cadence and health. Recover missing metadata or legacy ownership once, preserving live workers/settings. Waiting remote work does not need a nudge to its idle local shell.
 
 5. **Act on the verified state**, and update the roster row in the same turn:
 
    | State | Action |
    |---|---|
-   | Done | `status` → `verified`; `t3_thread_organize` `settle`; dispatch what the map unblocks (t3-threads), after verifying each required blocker merged. A `cloud-fleet` row finishes by monitor-cloud's completion criterion and cleanup of its own watcher; per-ticket landings are progress reports to relay |
-   | Unfinished, no blocker stated | One `t3_thread_send` (`queue`) naming the open items, ending with the report-back line; `continuations` +1. At 3, stop pushing: read the thread and decide — fix it yourself, redispatch with a better brief, or hand it to the user |
+   | Done | `status` → `verified`; `t3_thread_organize` `settle`; dispatch what the map unblocks after verifying each required blocker merged. A cloud row resolves by monitor-cloud's done-criterion; its owner retains the sole watcher until the whole map resolves |
+   | Waiting on a task, dependency, CI or integration | Record the wait and readiness condition; inspect it on the next owner sweep |
+   | Unfinished local assignment with new actionable work | One `t3_thread_send` (`queue`) naming the new work/event ID and requesting one result; `continuations` +1. At 3, inspect and choose a better assignment, an inline local fix or user handoff. Cloud recovery stays on the recorded remote route |
    | Asks a question | Answer it when the brief or the user already settled it; otherwise put it to the user verbatim with the label, and relay the answer |
-   | Failed | Read the `activity` tail for the cause; redispatch, fix inline, or hand back |
+   | Failed | Inspect the cause and retained result; recover through its execution route or record the unresolved prerequisite |
 
-6. **Carry news between threads.** When a landing, a decision, or a discovered constraint changes what a running sibling should do — main moved under it, a shared interface changed, the user settled a question two threads share — send each affected thread a short `queue` note, or `steer` when its current turn is heading the wrong way. Decide a shared question once and send the answer to every thread that needs it.
+6. **Route actionable handoffs through the owner.** Record landings, interfaces and decisions in shared state. Send only when a recipient must take a new action or receive an answer now, naming the event/revision and requested action; ask for a reply only when a result is needed. A recipient's acknowledgement is not another assignment. Cloud handoffs follow the shared event contract; informational snapshots wait for the next necessary turn.
 
 7. **Report in your own text**, blockers first: each landing (label, PR, what merged), what was dispatched, and every question waiting on the user. The user reads the coordinator, not the threads.
 
-8. **Done** when every roster row is `verified` or the user dropped it and fleet-owned watchers are stopped: `delete_scheduled_task` on this coordinator's heartbeat, settle what is left, and close with the roster as a table — label, provider/model/effort where known, outcome, PR. Keep the roster and fleet health records.
+8. **Done** when every roster row is `verified` or the user dropped it and the monitor owner has stopped the owned watcher: delete this coordinator's heartbeat only if it owns it, settle what is left, and close with the roster as a table — label, provider/model/effort where known, outcome, PR. Keep the roster, event state and fleet health records.
 
 ## Reference
 
-- **Late echoes.** After a row is verified, its thread can still report, finish a wrap-up turn, or fire a notification. The roster status makes these mechanical to ignore.
+- **Late echoes.** A duplicate completion or wrap-up report needs no reply. Inspect a new unresolved defect or decision before dismissing it, even when the historical assignment is verified.
 - **Follow-ups never re-notify.** Only a child task's first run triggers the T3 notification; a later turn on it reports only through the report-back line its message carries, and its result shows in `task_status` as `latestTerminalSummary`.
 - **Collisions.** A signal may abort the tool call in flight. Check whether a mutation already succeeded before retrying; use stable retry keys where supported.
 - **Waiting inside a turn.** `t3_thread_wait` blocks up to `timeoutMs` (default 10 min, max 1 h) and returns the run's status; reach for it only when the next step needs one result now.

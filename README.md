@@ -62,7 +62,7 @@ See [monitor-tickets/SKILL.md](monitor-tickets/SKILL.md) for full instructions.
 
 ### `t3-threads`
 
-Dispatch child tasks or explicitly requested separate conversations in T3 Code, including a separate coordinator for Claude or Codex cloud fleets. Inherit provider, model, and effort unless the user overrides them; write self-contained briefs and keep a roster. Direct cloud work uses the shared `cloud-agents` and `monitor-cloud` skills in the current coordinator.
+Dispatch child tasks or explicitly requested separate conversations in T3 Code. Claude/Codex cloud conversations are thin handoff threads: computation stays remote, and one monitor owner checks the complete fleet. Inherit provider, model and effort unless the user overrides them; write self-contained briefs and keep a roster.
 
 Includes the cloud-fleet reference and standalone copies of the Opus and Fable briefing guides.
 
@@ -72,13 +72,25 @@ See [T3code/t3-threads/SKILL.md](T3code/t3-threads/SKILL.md) for full instructio
 
 ### `t3-monitor`
 
-Coordinate the threads, child tasks, and separate cloud-fleet coordinators launched with `t3-threads`: reuse or schedule one heartbeat, handle reports and questions, verify each brief’s completion criterion, relay changes, and release dependents after verified merges. Cloud-fleet health comes from its recorded watcher or scheduler. Clean up owned schedules when the fleet finishes.
+Coordinate work launched with `t3-threads`: verify results, answer actionable questions, release dependents and clean up the owned heartbeat. Cloud work shares one monitor owner and watcher; duplicate reports, acknowledgements and unchanged waits do not wake ticket threads.
 
 **Usage:** `/t3-monitor` after dispatching work with `t3-threads`.
 
 See [T3code/t3-monitor/SKILL.md](T3code/t3-monitor/SKILL.md) for full instructions.
 
-The skills, model guides, installation instructions, and dependency notes are grouped in [T3code/README.md](T3code/README.md). Install both skills together and use them inside T3 Code.
+### `cloud-agents`
+
+Dispatch, inspect and continue Claude Code or Codex cloud tasks. The shared workflow keeps implementation, tests, reviews, integration and recovery remote, while the local coordinator handles dispatch, status and decisions. Claude's Codex review route uses a separate Codex cloud task and relays its findings back to the original Claude session.
+
+See [T3code/cloud-agents/SKILL.md](T3code/cloud-agents/SKILL.md) for provider preflight and the bundled dispatch adapters.
+
+### `monitor-cloud`
+
+Watch Claude/Codex ticket fleets through one monitor owner and notifying host. Record processed events, inspect changed results once, verify exact GitHub landings and release dependents. Missing remote capabilities remain named phase blockers.
+
+See [T3code/monitor-cloud/SKILL.md](T3code/monitor-cloud/SKILL.md) for the watcher and completion criteria.
+
+These four skills, their adapters, model guides and installation notes are grouped in [T3code/README.md](T3code/README.md). Use the T3 pair inside T3 Code; the cloud pair also works outside it.
 
 ## Installation
 
@@ -99,6 +111,7 @@ Other commands:
 npx github:arthur-albuquerque/skills list   # print available skills + descriptions
 npx github:arthur-albuquerque/skills add --skill html_viewer --client claude-code
 npx github:arthur-albuquerque/skills add --skill t3-threads --skill t3-monitor --client claude-code --global -y
+npx github:arthur-albuquerque/skills add --skill t3-threads --skill t3-monitor --skill cloud-agents --skill monitor-cloud --client codex --global -y
 ```
 
 > Requires Node 18+. No npm account or global install needed — `npx` runs it straight from GitHub.
